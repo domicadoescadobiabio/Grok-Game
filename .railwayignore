@@ -2,3 +2,8 @@ node_modules/
 data/
 .env
 *.log
+
+# Railway builds with Nixpacks (see railway.json). Leaving the Dockerfile
+# visible makes it pick the Docker builder instead, which fails here -- the
+# file is for running this anywhere else, so hide it from Railway only.
+Dockerfile

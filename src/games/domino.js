@@ -1,4 +1,4 @@
-// Domino, gaple rules: a double-six set, seven tiles each, and no boneyard --
+// Dominoes, block rules: a double-six set, seven tiles each, and no boneyard --
 // if you cannot play, you pass.
 //
 // Ending a hand: go out first and you collect the pips still in everyone's
@@ -50,7 +50,7 @@ export const boardText = (board) =>
 
 export const domino = {
   key: 'domino',
-  title: 'Domino (Gaple)',
+  title: 'Dominoes',
   blurb: 'Double-six set, seven tiles each. Match an end or pass.',
   minSeats: 2,
   maxSeats: 4,
@@ -62,7 +62,7 @@ export const domino = {
     const players = table.seats
       .map((s) => playerById(s.playerId))
       .filter((p) => p && p.chips > 0);
-    if (players.length < 2) throw new GameError('Domino needs at least two players.', 'need_two');
+    if (players.length < 2) throw new GameError('Dominoes needs at least two players.', 'need_two');
 
     const tiles = shuffled(fullSet());
     const hands = {};
@@ -291,12 +291,12 @@ function finish(table, winnerId, blocked) {
       p.stats.handsPlayed += 1;
       if (id === winner) continue;
       const loss = handPips(st.hands[id]) * table.stake;
-      adjustChips(p, -loss, 'domino');
+      adjustChips(p, -loss, 'dominoes');
       p.stats.losses += 1;
       events.push(`@${p.username} holds ${handPips(st.hands[id])} pips: -${loss}`);
     }
     if (w) {
-      adjustChips(w, prize, 'domino');
+      adjustChips(w, prize, 'dominoes');
       w.stats.wins += 1;
       if (prize > (w.stats.biggestPot || 0)) w.stats.biggestPot = prize;
       st.winners.push({ username: w.username, amount: prize });

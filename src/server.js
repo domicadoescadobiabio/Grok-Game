@@ -13,7 +13,7 @@ import {
 import { lobby, gameList, snapshot } from './core/engine.js';
 import { recent, stats } from './core/activity.js';
 import { livePage } from './web/live.js';
-import { appPage } from './web/app.js';
+import { staticScreen, screenPage } from './web/page.js';
 
 const app = express();
 app.set('trust proxy', 1);
@@ -22,6 +22,7 @@ app.use(cors({
   allowedHeaders: ['content-type', 'mcp-session-id', 'authorization', 'mcp-protocol-version'],
 }));
 app.use(express.json({ limit: '1mb' }));
+app.use(staticScreen());
 
 app.get('/healthz', (_req, res) => {
   res.json({
@@ -84,7 +85,7 @@ const withPlayer = (handler) => (req, res) => {
   }
 };
 
-app.get('/play', (_req, res) => res.type('html').send(appPage()));
+app.get('/play', screenPage);
 
 
 app.post('/api/login', (req, res) => {

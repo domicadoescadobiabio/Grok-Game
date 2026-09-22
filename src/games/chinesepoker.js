@@ -1,4 +1,4 @@
-// Capsa Susun (Chinese poker). Thirteen cards, split into three rows:
+// Chinese poker. Thirteen cards, split into three rows:
 //
 //   back   5 cards  -- must be the strongest
 //   middle 5 cards
@@ -100,9 +100,9 @@ function parseRow(text, hand, rowName, count) {
   });
 }
 
-export const capsa = {
-  key: 'capsa',
-  title: 'Capsa Susun',
+export const chinesePoker = {
+  key: 'chinesepoker',
+  title: 'Chinese Poker',
   blurb: 'Thirteen cards into three rows. Strongest at the back, weakest in front.',
   minSeats: 2,
   maxSeats: 4,
@@ -115,7 +115,7 @@ export const capsa = {
       .map((s) => playerById(s.playerId))
       .filter((p) => p && p.chips >= table.stake * 6); // worst case: lose every row
     if (players.length < 2) {
-      throw new GameError(`Capsa needs two players who can cover ${table.stake * 6} chips.`, 'poor');
+      throw new GameError(`Chinese poker needs two players who can cover ${table.stake * 6} chips.`, 'poor');
     }
 
     const deck = shuffle(freshDeck());
@@ -316,11 +316,11 @@ function score(table) {
     const delta = net[id] * table.stake;
     p.stats.handsPlayed += 1;
     if (delta > 0) {
-      adjustChips(p, delta, 'capsa');
+      adjustChips(p, delta, 'chinese poker');
       p.stats.wins += 1;
       st.winners.push({ username: p.username, amount: delta });
     } else if (delta < 0) {
-      adjustChips(p, delta, 'capsa');
+      adjustChips(p, delta, 'chinese poker');
       p.stats.losses += 1;
     }
     lines.push(`@${p.username}: ${net[id] > 0 ? '+' : ''}${net[id]} rows = ${delta > 0 ? '+' : ''}${delta} chips (${p.chips})`);

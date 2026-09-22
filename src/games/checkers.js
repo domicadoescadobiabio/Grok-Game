@@ -1,5 +1,6 @@
-// Dam / draughts on an 8x8 board, with the two rules people actually play by:
-// capturing is compulsory, and a king slides any distance along a diagonal.
+// Checkers (draughts) on an 8x8 board, with the two rules people actually
+// play by: capturing is compulsory, and a king slides any distance along a
+// diagonal.
 //
 // Squares are named like chess -- a1 to h8 -- so a move reads "c3 to d4" and a
 // capture reads "c3 takes e5". Only the dark squares are used.
@@ -244,9 +245,9 @@ export function chooseMove(board, colour, depth = 5) {
 
 // ---------------------------------------------------------------- the game
 
-export const dam = {
-  key: 'dam',
-  title: 'Dam (Draughts)',
+export const checkers = {
+  key: 'checkers',
+  title: 'Checkers',
   blurb: 'Eight by eight. Capturing is compulsory, and kings fly.',
   minSeats: 2,
   maxSeats: 2,
@@ -256,14 +257,14 @@ export const dam = {
   anytimeActions: ['resign'],
 
   start(table) {
-    if (table.seats.length !== 2) throw new GameError('Dam needs exactly two players.', 'need_two');
+    if (table.seats.length !== 2) throw new GameError('Checkers needs exactly two players.', 'need_two');
     const [a, b] = table.seats.map((s) => playerById(s.playerId));
     for (const p of [a, b]) {
       if (p.chips < table.stake) {
         throw new GameError(`@${p.username} needs ${table.stake} chips and has ${p.chips}.`, 'poor');
       }
     }
-    for (const p of [a, b]) adjustChips(p, -table.stake, 'dam stake');
+    for (const p of [a, b]) adjustChips(p, -table.stake, 'checkers stake');
 
     const whiteFirst = table.round % 2 === 0;
     const white = whiteFirst ? a : b;
@@ -416,7 +417,7 @@ function finish(table, winner, headline, events = []) {
   for (const p of [white, black]) if (p) p.stats.handsPlayed += 1;
 
   if (winner) {
-    adjustChips(winner, st.pot, 'dam pot');
+    adjustChips(winner, st.pot, 'checkers pot');
     winner.stats.wins += 1;
     const loser = winner.id === white?.id ? black : white;
     if (loser) loser.stats.losses += 1;
@@ -424,8 +425,8 @@ function finish(table, winner, headline, events = []) {
     events.push(`${headline} Pot of ${st.pot} to @${winner.username} (now ${winner.chips}).`);
   } else {
     const half = Math.floor(st.pot / 2);
-    if (white) adjustChips(white, half, 'dam draw');
-    if (black) adjustChips(black, st.pot - half, 'dam draw');
+    if (white) adjustChips(white, half, 'checkers draw');
+    if (black) adjustChips(black, st.pot - half, 'checkers draw');
     events.push(`${headline} Pot split.`);
   }
 

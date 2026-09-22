@@ -1,199 +1,7 @@
-// The screen. Watch-only: the arcade is played through an AI connector, and
-// this page draws what is happening so you can see the cards and the board
-// instead of reading them. There is deliberately no way to act from here --
-// the server exposes no endpoint that would allow it.
-
-export function appPage() {
-  return `<!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ARCADE</title>
-<style>
-  :root {
-    color-scheme: dark;
-    --bg:#0c0f14; --panel:#141922; --line:#232a36; --fg:#e6e3dc; --dim:#8a8578;
-    --gold:#d9b06a; --felt:#1d4636; --feltEdge:#123027; --red:#d2564b; --green:#5fa76a;
-    --blue:#5c8fb8;
-  }
-  * { box-sizing:border-box; }
-  html,body { margin:0; min-height:100%; background:var(--bg); color:var(--fg);
-    font:14px/1.5 ui-rounded,-apple-system,Segoe UI,Roboto,sans-serif; }
-  button { font:inherit; cursor:pointer; border:0; border-radius:9px; }
-  .wrap { max-width:1000px; margin:0 auto; padding:20px 16px 60px; }
-
-  header { display:flex; align-items:center; gap:14px; margin-bottom:22px; flex-wrap:wrap; }
-  .logo { font-size:19px; letter-spacing:.24em; color:var(--gold); font-weight:700; }
-  .spacer { flex:1; }
-  .chips { background:var(--panel); border:1px solid var(--line); border-radius:999px;
-    padding:6px 14px; font-weight:700; }
-  .chips b { color:var(--gold); }
-  .ghost { background:transparent; color:var(--dim); border:1px solid var(--line); padding:6px 12px; }
-  .ghost:hover { color:var(--fg); }
-
-  /* ---------- game picker ---------- */
-  h2 { font-size:13px; letter-spacing:.14em; text-transform:uppercase; color:var(--dim);
-       margin:26px 0 12px; font-weight:700; }
-  .picker { display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:14px; }
-  .gamecard { background:var(--panel); border:1px solid var(--line); border-radius:16px;
-    padding:18px; text-align:left; color:var(--fg); transition:.15s; position:relative; overflow:hidden; }
-  .gamecard:hover { border-color:var(--gold); transform:translateY(-2px); }
-  .gamecard h3 { margin:12px 0 6px; font-size:17px; }
-  .gamecard p { margin:0; color:var(--dim); font-size:13px; min-height:38px; }
-  .gamecard .meta { margin-top:10px; font-size:12px; color:var(--gold); }
-  .art { height:64px; display:flex; align-items:center; gap:6px; }
-
-  /* ---------- playing cards ---------- */
-  .card { width:52px; height:74px; border-radius:7px; background:#f6f3ec; color:#15171c;
-    box-shadow:0 2px 6px rgba(0,0,0,.45); position:relative; flex:none;
-    display:flex; flex-direction:column; justify-content:space-between; padding:5px 6px;
-    font-weight:800; line-height:1; }
-  .card.red { color:#c02b26; }
-  .card .mid { position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
-    font-size:26px; opacity:.9; }
-  .card .br { align-self:flex-end; transform:rotate(180deg); }
-  .card.back { background:repeating-linear-gradient(45deg,#2b3a63,#2b3a63 5px,#223055 5px,#223055 10px);
-    border:2px solid #3d4f7d; }
-  .card.sm { width:38px; height:54px; font-size:11px; border-radius:5px; }
-  .card.sm .mid { font-size:18px; }
-  .hand { display:flex; gap:5px; }
-
-  /* ---------- felt table ---------- */
-  .felt { background:radial-gradient(ellipse at 50% 38%, #27604a 0%, var(--felt) 58%, var(--feltEdge) 100%);
-    border:10px solid #2a1d13; border-radius:22px; padding:22px; min-height:300px;
-    box-shadow:inset 0 0 60px rgba(0,0,0,.5); }
-  .board { display:flex; gap:7px; justify-content:center; margin:12px 0; min-height:74px; }
-  .pot { text-align:center; color:var(--gold); font-weight:800; letter-spacing:.06em; }
-  .seats { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:10px; margin-top:16px; }
-  .seat { background:rgba(0,0,0,.34); border:1px solid rgba(255,255,255,.09); border-radius:12px; padding:10px; }
-  .seat.turn { border-color:var(--gold); box-shadow:0 0 0 2px rgba(217,176,106,.25); }
-  .seat.folded { opacity:.42; }
-  .seat .who { display:flex; align-items:center; gap:6px; font-weight:700; margin-bottom:6px; }
-  .seat .who .tag { font-size:10px; padding:1px 6px; border-radius:5px; background:rgba(255,255,255,.1);
-    color:var(--dim); font-weight:600; letter-spacing:.06em; }
-  .seat .who .tag.you { background:rgba(217,176,106,.2); color:var(--gold); }
-  .seat .line { font-size:12px; color:#cfd6d2; }
-
-  /* ---------- chess ---------- */
-  .chessboard { display:grid; grid-template-columns:repeat(8,1fr); width:min(456px,100%);
-    margin:0 auto; border:8px solid #2a1d13; border-radius:10px; overflow:hidden;
-    box-shadow:0 10px 30px rgba(0,0,0,.45); }
-  .sq { aspect-ratio:1; display:flex; align-items:center; justify-content:center;
-    font-size:min(7.4vw,34px); line-height:1; position:relative; user-select:none; }
-  .sq.light { background:#e6d3b1; }
-  .sq.dark { background:#9c7a56; }
-  .sq.sel { box-shadow:inset 0 0 0 4px rgba(217,176,106,.9); }
-  .sq.target::after { content:''; position:absolute; width:26%; height:26%; border-radius:50%;
-    background:rgba(30,60,40,.45); }
-  .sq.target.occupied::after { width:86%; height:86%; background:transparent;
-    border:4px solid rgba(190,60,50,.6); }
-  .sq.check { background:#d2564b !important; }
-  .sq .coord { position:absolute; font-size:13px; font-weight:900; line-height:1;
-    pointer-events:none; font-family:ui-monospace,Consolas,monospace;
-    text-shadow:0 1px 2px rgba(0,0,0,.35); }
-  .sq .coord.rank { top:3px; left:4px; }
-  .sq .coord.file { bottom:3px; right:4px; }
-  .sq.light .coord { color:#6b4a24; }
-  .sq.dark .coord { color:#f3e4c6; }
-  .sq.from { box-shadow:inset 0 0 0 3px rgba(120,170,220,.55); }
-  .sq.to { box-shadow:inset 0 0 0 3px rgba(120,170,220,.85); }
-  .movelist { margin-top:14px; background:var(--panel); border:1px solid var(--line);
-    border-radius:12px; padding:10px 14px; max-height:190px; overflow-y:auto; }
-  .mv { display:flex; gap:9px; font-size:12px; padding:3px 0; align-items:baseline; }
-  .mv .n { color:var(--dim); min-width:22px; text-align:right; }
-  .mv .side { min-width:14px; }
-  .mv .txt { color:var(--fg); }
-  .mv .san { color:var(--dim); margin-left:auto; font-size:11px; }
-  .mv.last .txt { color:var(--gold); font-weight:700; }
-  .piece { text-shadow:0 2px 3px rgba(0,0,0,.35); }
-  .piece.w { color:#fdfaf4; -webkit-text-stroke:1.5px #3a2a1c; }
-  .piece.b { color:#242830; -webkit-text-stroke:1.5px #0d0f13; }
-
-  /* ---------- controls ---------- */
-  .controls { display:flex; gap:9px; flex-wrap:wrap; margin-top:16px; align-items:center; }
-  .btn { padding:11px 18px; font-weight:700; background:var(--panel); color:var(--fg);
-    border:1px solid var(--line); }
-  .btn:hover { border-color:var(--gold); }
-  .btn.primary { background:var(--gold); color:#171309; border-color:var(--gold); }
-  .btn.danger { color:var(--red); }
-  .btn:disabled { opacity:.35; cursor:not-allowed; }
-  input[type=number], input[type=text] { background:#0f131a; border:1px solid var(--line);
-    color:var(--fg); padding:10px 12px; border-radius:9px; width:120px; font:inherit; }
-  .turnbar { display:flex; align-items:center; gap:10px; margin-top:14px; font-weight:700; }
-  .turnbar .dot { width:9px; height:9px; border-radius:50%; background:var(--dim); }
-  .turnbar .dot.on { background:var(--green); box-shadow:0 0 9px var(--green); }
-
-  .log { margin-top:18px; background:var(--panel); border:1px solid var(--line); border-radius:12px;
-    padding:12px 14px; max-height:170px; overflow-y:auto; }
-  .log div { font-size:12px; color:var(--dim); padding:2px 0; }
-  .log div:first-child { color:var(--fg); }
-
-  .gate { max-width:380px; margin:12vh auto; background:var(--panel); border:1px solid var(--line);
-    border-radius:18px; padding:26px; }
-  .gate h1 { font-size:20px; letter-spacing:.2em; color:var(--gold); margin:0 0 6px; text-align:center; }
-  .gate p { color:var(--dim); text-align:center; margin:0 0 18px; font-size:13px; }
-  .gate input { width:100%; margin-bottom:10px; }
-  .gate .btn { width:100%; }
-  .err { color:var(--red); font-size:13px; margin-top:10px; text-align:center; }
-  .note { color:var(--dim); font-size:12px; margin-top:14px; text-align:center; line-height:1.6; }
-  .row { display:flex; gap:9px; align-items:center; flex-wrap:wrap; }
-  .chatbox { background:var(--panel); border:1px solid var(--line); border-left:3px solid var(--gold);
-    border-radius:12px; padding:13px 16px; margin-top:16px; }
-  .chatbox b { display:block; color:var(--gold); font-size:12px; letter-spacing:.1em;
-    text-transform:uppercase; margin-bottom:8px; }
-  .chatbox div { color:var(--dim); font-size:13px; padding:2px 0; }
-  .chatbox .tip { font-size:11px; opacity:.75; margin-top:6px; }
-  code.say { background:#0f131a; border:1px solid var(--line); color:var(--fg);
-    padding:3px 9px; border-radius:7px; font-family:ui-monospace,Consolas,monospace; font-size:12px; }
-
-  /* ---------- chips ---------- */
-  .stack { display:flex; align-items:flex-end; gap:5px; min-height:34px; margin:8px 0 4px; }
-  .col { display:flex; flex-direction:column-reverse; }
-  .chip { width:34px; height:11px; border-radius:50%; margin-top:-6px;
-    border:1px solid rgba(0,0,0,.35);
-    box-shadow:0 2px 3px rgba(0,0,0,.55), inset 0 -3px 4px rgba(0,0,0,.4),
-               inset 0 3px 3px rgba(255,255,255,.32); }
-  .chip.c1   { background:#e8e4da; }
-  .chip.c5   { background:#c9453c; }
-  .chip.c10  { background:#4478a8; }
-  .chip.c25  { background:#3f8f5a; }
-  .chip.c100 { background:#22242c; box-shadow:0 1px 2px rgba(0,0,0,.6),
-               inset 0 -2px 3px rgba(0,0,0,.5), inset 0 2px 2px rgba(255,255,255,.18); }
-  .stack .amt { font-size:12px; color:var(--gold); font-weight:800; margin-left:7px;
-    align-self:center; }
-  .potchips { display:flex; justify-content:center; align-items:flex-end; gap:6px;
-    margin:6px 0 10px; min-height:36px; }
-  .potchips .chip { width:40px; height:13px; margin-top:-7px; }
-
-  /* ---------- winning ---------- */
-  @keyframes pulseWin { 0%,100% { box-shadow:0 0 0 2px rgba(217,176,106,.35); }
-                        50% { box-shadow:0 0 22px 5px rgba(217,176,106,.6); } }
-  .seat.winner { border-color:var(--gold); animation:pulseWin 1.3s ease-in-out infinite; }
-  .seat.winner .who { color:var(--gold); }
-  .banner { margin-top:16px; padding:15px 18px; border-radius:14px; text-align:center;
-    background:linear-gradient(180deg,rgba(217,176,106,.18),rgba(217,176,106,.06));
-    border:1px solid rgba(217,176,106,.45); }
-  .banner .big { font-size:19px; font-weight:800; color:var(--gold); letter-spacing:.04em; }
-  .banner .sub { color:var(--dim); font-size:13px; margin-top:4px; }
-  .banner.lose { background:linear-gradient(180deg,rgba(210,86,75,.14),rgba(210,86,75,.04));
-    border-color:rgba(210,86,75,.4); }
-  .banner.lose .big { color:var(--red); }
-  @keyframes fall { to { transform:translateY(105vh) rotate(720deg); opacity:0; } }
-  .confetti { position:fixed; top:-12px; width:9px; height:14px; z-index:99;
-    pointer-events:none; animation:fall linear forwards; }
-
-  /* ---------- sound toggle ---------- */
-  .snd { background:transparent; border:1px solid var(--line); color:var(--dim);
-    padding:6px 11px; border-radius:9px; }
-  .snd.on { color:var(--gold); border-color:rgba(217,176,106,.5); }
-  .turnbar.urgent { color:var(--red); }
-</style>
-</head>
-<body><div class="wrap" id="app">loading…</div>
-<script>
+// The screen: draws whatever /api/state reports, and never acts.
+// Served as a static file; see src/web/page.js for how it is wired up.
 (() => {
-  const SUIT = { s:'\\u2660', h:'\\u2665', d:'\\u2666', c:'\\u2663' };
+  const SUIT = { s:'\u2660', h:'\u2665', d:'\u2666', c:'\u2663' };
   // The hollow U+2654 set reads as grey once outlined, so both sides use the
   // solid glyphs and colour is what tells them apart.
   const SOLID = { k:'\u265A', q:'\u265B', r:'\u265C', b:'\u265D', n:'\u265E', p:'\u265F' };
@@ -559,7 +367,7 @@ export function appPage() {
         meta: '1-5 vs dealer &middot; 15s a turn', say: 'open a blackjack table', art: hand(['Ad', 'Ts'], true) },
       { title: 'Chess', blurb: 'One on one, against a person or the computer.',
         meta: '2 players &middot; 60s a move', say: 'open a chess table',
-        art: '<span class="piece w" style="font-size:44px">\\u265A</span><span class="piece b" style="font-size:44px">\\u265B</span>' },
+        art: '<span class="piece w" style="font-size:44px">\u265A</span><span class="piece b" style="font-size:44px">\u265B</span>' },
     ];
     return '<div class="chatbox" style="margin-bottom:18px"><b>This screen only watches</b>'
       + '<div>The arcade is played in your AI chat. Open a table there and it shows up here.</div></div>'
@@ -747,7 +555,7 @@ export function appPage() {
     const p = g.players;
     html += '<div class="seats" style="margin-top:14px">'
       + ['w','b'].map(c => '<div class="seat' + (g.turnColor === c && state.table.status === 'playing' ? ' turn' : '') + '">'
-        + '<div class="who">' + (c === 'w' ? '\\u2654 white' : '\\u265A black') + ' &middot; @' + esc(p[c].username || '?')
+        + '<div class="who">' + (c === 'w' ? '\u2654 white' : '\u265A black') + ' &middot; @' + esc(p[c].username || '?')
         + (p[c].isYou ? '<span class="tag you">you</span>' : '')
         + (p[c].isBot ? '<span class="tag">cpu</span>' : '') + '</div></div>').join('')
       + '</div>';
@@ -792,7 +600,3 @@ export function appPage() {
   refresh();
   startPolling();
 })();
-</script>
-</body>
-</html>`;
-}

@@ -36,16 +36,16 @@ Every table can seat house bots, so nothing needs a second human:
   mate in one. See `chessbot.js` for why the search is time-bounded: a fixed
   depth 3 took *ten seconds* from a busy middlegame, because chess.js
   `moves({verbose:true})` costs 2.4ms against 0.16ms for the plain call.
-- **Dam** -- the same idea on a smaller tree, so it searches deeper. Compulsory
-  capture prunes most of the branching for free.
+- **Checkers** -- the same idea on a smaller tree, so it searches deeper.
+  Compulsory capture prunes most of the branching for free.
 - **Poker** -- scores its hole cards preflop and the real made hand after the
   flop, then compares that to the pot odds it is being offered, with a little
   noise so it cannot be read perfectly.
 - **Blackjack** -- basic strategy, minus splits.
-- **Domino** -- sheds the heaviest playable tile, which is what you get stuck
+- **Dominoes** -- sheds the heaviest playable tile, which is what you get stuck
   holding when a hand blocks.
-- **Capsa** -- arranges automatically; see `autoArrange` for why it does not
-  search all 72,072 splits.
+- **Chinese poker** -- arranges automatically; see `autoArrange` for why it does
+  not search all 72,072 splits.
 - **Bingo** -- calls a number. There is nothing else to do.
 
 Bots are minted per table rather than drawn from a global pool. The pool version
@@ -62,9 +62,9 @@ through the same code a person does. There is no path where the house cheats.
 | Texas Hold'em | 2–6 | 30s | `fold` `check` `call` `raise <amount>` `allin` |
 | Blackjack | 1–5 vs dealer | 15s | `hit` `stand` `double` |
 | Chess | 2 | 60s | `move <notation>` `resign` `draw` |
-| Capsa Susun | 2–4 | 120s | `arrange` three rows, or `auto` |
-| Domino (Gaple) | 2–4 | 30s | `play <tile> [left\|right]` `pass` |
-| Dam (draughts) | 2 | 60s | `move <from> <to>` `resign` |
+| Chinese Poker | 2–4 | 120s | `arrange` three rows, or `auto` |
+| Dominoes | 2–4 | 30s | `play <tile> [left\|right]` `pass` |
+| Checkers | 2 | 60s | `move <from> <to>` `resign` |
 | Bingo | 2–6 | 30s | `call` |
 
 Chess moves are reported in words -- *"Pawn e2 to e4"*, *"Rook a1 takes Bishop
@@ -119,10 +119,27 @@ it?" and be told it was the bot's — forever.
 
 ```bash
 npm install
-npm start           # http://localhost:4900
-npm test            # rules and engine (46 tests)
-npm run test:mcp    # 35 end-to-end checks against a running /mcp endpoint
+npm start                      # http://localhost:4900
+npm test                       # rules and engine (46 tests)
+npm run test:mcp               # 35 end-to-end checks against /mcp
+./scripts/verify.sh            # everything above, against a running server
+./scripts/verify.sh https://…  # …or against a deployment
 ```
+
+Or with Docker, to run it anywhere that is not Railway:
+
+```bash
+docker build -t grok-game .
+docker run -p 4900:4900 -v "$PWD/data:/app/data" grok-game
+```
+
+> The `Dockerfile` has not been built and run — there is no Docker on the
+> machine it was written on. It is short and its `COPY` paths are checked, but
+> treat the first `docker build` as untested.
+>
+> Railway does **not** use it: a visible Dockerfile makes Railway switch to the
+> Docker builder, and that deploy failed, so `.railwayignore` hides it. Railway
+> builds with Nixpacks per `railway.json`.
 
 ## Layout
 
@@ -143,8 +160,14 @@ src/
     cards.js             deck, shuffle, formatting
     handrank.js          7-card poker evaluation
     poker.js  blackjack.js  chess.js  chessbot.js
-    capsa.js  domino.js  dam.js  bingo.js
+    chinesepoker.js  domino.js  checkers.js  bingo.js
+    page.js              serves the screen from ./public
+    live.js              the request monitor behind /live
   store/jsonStore.js     atomic debounced JSON persistence
+public/
+  index.html             the screen's markup
+  arcade.css             its styles
+  arcade.js              its client script -- draws state, never acts
 ```
 
 A game plugs in by exporting `start`, `act`, `view`, `onTimeout` and some

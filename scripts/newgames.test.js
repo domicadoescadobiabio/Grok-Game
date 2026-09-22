@@ -8,9 +8,9 @@ import fs from 'node:fs';
 
 import { createPlayer, playerById, GameError } from '../src/core/players.js';
 import { createTable, seatBots, startRound, act, viewTable, leaveTable, snapshot } from '../src/core/engine.js';
-import { checkArrangement, autoArrange } from '../src/games/capsa.js';
+import { checkArrangement, autoArrange } from '../src/games/chinesepoker.js';
 import { fullSet, parseTile, canPlay, pips } from '../src/games/domino.js';
-import { startingBoard, legalMoves, applyMove, countPieces, chooseMove, parseSquare } from '../src/games/dam.js';
+import { startingBoard, legalMoves, applyMove, countPieces, chooseMove, parseSquare } from '../src/games/checkers.js';
 import { makeCard, findLine, marksFor, columnOf } from '../src/games/bingo.js';
 
 let seq = 0;
@@ -35,11 +35,11 @@ function playOut(table, me, decide, limit = 200) {
   return table.status;
 }
 
-// ---------------------------------------------------------------- capsa
+// ---------------------------------------------------------------- chinese poker
 
-test('capsa: auto-arrangements are always legal', () => {
+test('chinese poker: auto-arrangements are always legal', () => {
   const me = newPlayer();
-  const table = createTable(me, 'capsa', { stake: 20 });
+  const table = createTable(me, 'chinesepoker', { stake: 20 });
   seatBots(me, 2);
   startRound(me);
   for (let i = 0; i < 25; i++) {
@@ -52,7 +52,7 @@ test('capsa: auto-arrangements are always legal', () => {
   leaveTable(me);
 });
 
-test('capsa: rows out of order are a foul', () => {
+test('chinese poker: rows out of order are a foul', () => {
   // back must beat middle: a pair behind two pair is backwards
   const bad = {
     front: ['2c', '3d', '4h'],
@@ -64,9 +64,9 @@ test('capsa: rows out of order are a foul', () => {
   assert.equal(checkArrangement(good).foul, false);
 });
 
-test('capsa: a hand plays out and moves chips', () => {
+test('chinese poker: a hand plays out and moves chips', () => {
   const me = newPlayer(5000);
-  const table = createTable(me, 'capsa', { stake: 20 });
+  const table = createTable(me, 'chinesepoker', { stake: 20 });
   seatBots(me, 2);
   const before = me.chips;
   startRound(me);
@@ -77,9 +77,9 @@ test('capsa: a hand plays out and moves chips', () => {
   leaveTable(me);
 });
 
-test('capsa: you cannot play a card you were not dealt', () => {
+test('chinese poker: you cannot play a card you were not dealt', () => {
   const me = newPlayer();
-  const table = createTable(me, 'capsa', { stake: 20 });
+  const table = createTable(me, 'chinesepoker', { stake: 20 });
   seatBots(me, 1);
   startRound(me);
   const hand = table.state.hands[me.id].cards;
@@ -98,14 +98,14 @@ test('capsa: you cannot play a card you were not dealt', () => {
 
 // ---------------------------------------------------------------- domino
 
-test('domino: a full double-six set is 28 tiles, all distinct', () => {
+test('dominoes: a full double-six set is 28 tiles, all distinct', () => {
   const set = fullSet();
   assert.equal(set.length, 28);
   assert.equal(new Set(set.map((t) => t.join('-'))).size, 28);
   assert.equal(set.reduce((s, t) => s + pips(t), 0), 168, 'total pips in a double-six set');
 });
 
-test('domino: tiles parse and match ends correctly', () => {
+test('dominoes: tiles parse and match ends correctly', () => {
   assert.deepEqual(parseTile('6-3'), [6, 3]);
   assert.deepEqual(parseTile('63'), [6, 3]);
   assert.equal(parseTile('9-1'), null);
@@ -114,7 +114,7 @@ test('domino: tiles parse and match ends correctly', () => {
   assert.equal(canPlay([6, 3], null), true, 'anything opens an empty board');
 });
 
-test('domino: a hand plays to a finish', () => {
+test('dominoes: a hand plays to a finish', () => {
   const me = newPlayer(5000);
   const table = createTable(me, 'domino', { stake: 10 });
   seatBots(me, 3);
@@ -135,7 +135,7 @@ test('domino: a hand plays to a finish', () => {
   leaveTable(me);
 });
 
-test('domino: you cannot pass while holding a playable tile', () => {
+test('dominoes: you cannot pass while holding a playable tile', () => {
   const me = newPlayer();
   const table = createTable(me, 'domino', { stake: 10 });
   seatBots(me, 1);
@@ -148,16 +148,16 @@ test('domino: you cannot pass while holding a playable tile', () => {
   leaveTable(me);
 });
 
-// ---------------------------------------------------------------- dam
+// ---------------------------------------------------------------- checkers
 
-test('dam: the board starts with twelve a side and seven opening moves', () => {
+test('checkers: the board starts with twelve a side and seven opening moves', () => {
   const board = startingBoard();
   assert.equal(countPieces(board, 'w'), 12);
   assert.equal(countPieces(board, 'b'), 12);
   assert.equal(legalMoves(board, 'w').length, 7);
 });
 
-test('dam: capturing is compulsory', () => {
+test('checkers: capturing is compulsory', () => {
   const board = new Array(64).fill(null);
   const put = (sq, piece) => { const s = parseSquare(sq); board[s.rank * 8 + s.file] = piece; };
   put('c3', { colour: 'w', king: false });
@@ -170,7 +170,7 @@ test('dam: capturing is compulsory', () => {
   assert.ok(moves.some((m) => m.from === 'c3' && m.to === 'e5'));
 });
 
-test('dam: a man crowns on the far rank', () => {
+test('checkers: a man crowns on the far rank', () => {
   const board = new Array(64).fill(null);
   const put = (sq, piece) => { const s = parseSquare(sq); board[s.rank * 8 + s.file] = piece; };
   put('b7', { colour: 'w', king: false });
@@ -182,9 +182,9 @@ test('dam: a man crowns on the far rank', () => {
   assert.equal(after.board[s.rank * 8 + s.file].king, true);
 });
 
-test('dam: a game against the bot terminates with a winner', () => {
+test('checkers: a game against the bot terminates with a winner', () => {
   const me = newPlayer(5000);
-  const table = createTable(me, 'dam', { stake: 50 });
+  const table = createTable(me, 'checkers', { stake: 50 });
   seatBots(me, 1);
   startRound(me);
 
@@ -257,7 +257,7 @@ test('bingo: a game ends with a winner and the pot is conserved', () => {
 // ---------------------------------------------------------------- shared
 
 test('every game renders a view for a seated player without throwing', () => {
-  for (const game of ['capsa', 'domino', 'dam', 'bingo']) {
+  for (const game of ['chinesepoker', 'domino', 'checkers', 'bingo']) {
     const me = newPlayer(5000);
     createTable(me, game, {});
     seatBots(me, 1);

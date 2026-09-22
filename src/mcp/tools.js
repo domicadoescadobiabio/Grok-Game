@@ -108,7 +108,7 @@ export function registerTools(server) {
   server.registerTool('lobby', {
     title: 'Open tables',
     description: 'List public tables waiting for players. Optionally filter by game.',
-    inputSchema: { game: z.enum(['poker', 'blackjack', 'chess', 'capsa', 'domino', 'dam', 'bingo']).optional() },
+    inputSchema: { game: z.enum(['poker', 'blackjack', 'chess', 'chinesepoker', 'domino', 'checkers', 'bingo']).optional() },
   }, guard('lobby', async ({ game }) => {
     const rows = lobby({ game });
     if (!rows.length) return text('No open tables. Create one with create_table.');
@@ -121,7 +121,7 @@ export function registerTools(server) {
     title: 'Open a table',
     description: 'Open a new table for a game and sit down. Share the 4-letter code so friends can join.',
     inputSchema: {
-      game: z.enum(['poker', 'blackjack', 'chess', 'capsa', 'domino', 'dam', 'bingo']),
+      game: z.enum(['poker', 'blackjack', 'chess', 'chinesepoker', 'domino', 'checkers', 'bingo']),
       stake: z.number().int().positive().optional().describe('Chips per hand (poker: the big blind).'),
       name: z.string().optional(),
       private: z.boolean().optional().describe('Hide it from the lobby; joinable by code only.'),
@@ -199,21 +199,25 @@ ${renderTable(table, p)}`);
     title: 'Take your turn',
     description:
       'Make your move. The action depends on the game:\n' +
-      '  poker: fold, check, call, raise (with amount), allin\n' +
-      '  blackjack: hit, stand, double\n' +
-      '  chess: move (with move, e.g. "e4" or "O-O"), resign, draw\n' +
+      '  poker:        fold, check, call, raise (with amount), allin\n' +
+      '  blackjack:    hit, stand, double\n' +
+      '  chess:        move (with move, e.g. "e4" or "O-O"), resign, draw\n' +
+      '  chinesepoker: arrange (with front, middle, back), or auto\n' +
+      '  domino:       play (with tile, e.g. "6-3", and optional end left/right), pass\n' +
+      '  checkers:     move (with from and to, e.g. from "c3" to "d4"), resign\n' +
+      '  bingo:        call\n' +
       'Pass the player\'s intent straight through; do not decide their move for them.',
     inputSchema: {
-      action: z.string().describe('fold | check | call | raise | allin | hit | stand | double | move | resign | draw'),
+      action: z.string().describe('fold | check | call | raise | allin | hit | stand | double | move | resign | draw | arrange | auto | play | pass'),
       amount: z.number().int().positive().optional().describe('For poker raises: the total to raise TO.'),
       move: z.string().optional().describe('For chess: algebraic notation, e.g. "Nf3".'),
-      from: z.string().optional().describe('For dam: the square to move from, e.g. "c3".'),
-      to: z.string().optional().describe('For dam: the square to move to, e.g. "d4".'),
+      from: z.string().optional().describe('For checkers: the square to move from, e.g. "c3".'),
+      to: z.string().optional().describe('For checkers: the square to move to, e.g. "d4".'),
       tile: z.string().optional().describe('For domino: the tile, e.g. "6-3".'),
       end: z.enum(['left', 'right']).optional().describe('For domino: which end to play on.'),
-      front: z.string().optional().describe('For capsa: the 3 front cards, e.g. "As Kd 7c".'),
-      middle: z.string().optional().describe('For capsa: the 5 middle cards.'),
-      back: z.string().optional().describe('For capsa: the 5 back cards.'),
+      front: z.string().optional().describe('For chinese poker: the 3 front cards, e.g. "As Kd 7c".'),
+      middle: z.string().optional().describe('For chinese poker: the 5 middle cards.'),
+      back: z.string().optional().describe('For chinese poker: the 5 back cards.'),
       ...authShape,
     },
   }, guard('play', async (args) => {
@@ -290,9 +294,9 @@ THE GAMES
   Texas Hold'em  2-6.  fold / check / call / raise <amount> / allin     30s
   Blackjack      1-5.  hit / stand / double                            15s
   Chess          2.    move <notation> / resign / draw                 60s
-  Capsa Susun    2-4.  arrange three rows, or "auto"                   120s
-  Domino (Gaple) 2-4.  play <tile> [left|right] / pass                 30s
-  Dam            2.    move <from> <to> / resign                       60s
+  Chinese Poker  2-4.  arrange three rows, or "auto"                   120s
+  Dominoes       2-4.  play <tile> [left|right] / pass                 30s
+  Checkers       2.    move <from> <to> / resign                       60s
   Bingo          2-6.  call                                            30s
 
 HOW TURNS WORK

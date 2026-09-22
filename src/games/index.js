@@ -1,12 +1,12 @@
 import { blackjack } from './blackjack.js';
 import { poker } from './poker.js';
 import { chess } from './chess.js';
-import { capsa } from './capsa.js';
+import { chinesePoker } from './chinesepoker.js';
 import { domino } from './domino.js';
-import { dam } from './dam.js';
+import { checkers } from './checkers.js';
 import { bingo } from './bingo.js';
 
-export const GAMES = { blackjack, poker, chess, capsa, domino, dam, bingo };
+export const GAMES = { blackjack, poker, chess, chinesepoker: chinesePoker, domino, checkers, bingo };
 
 export const gameList = () => Object.values(GAMES).map((g) => ({
   key: g.key,
