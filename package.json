@@ -1,0 +1,25 @@
+{
+  "name": "grok-game",
+  "version": "0.1.0",
+  "private": true,
+  "description": "An arcade played through an AI connector: poker, blackjack, chess, capsa susun, domino, dam and bingo",
+  "type": "module",
+  "main": "src/server.js",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "test": "node --test scripts/handrank.test.js scripts/games.test.js scripts/newgames.test.js",
+    "test:mcp": "node scripts/mcp-play.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.30.0",
+    "chess.js": "^1.0.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "zod": "^3.23.8"
+  }
+}
