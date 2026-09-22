@@ -328,7 +328,7 @@
   const errorBar = () => error ? '<div class="err">' + esc(error) + '</div>' : '';
 
   const header = () => '<header>'
-    + '<span class="logo"><img src="/logo.svg" alt="" width="26" height="26">GROK GAME</span>'
+    + '<span class="logo"><img src="/logo.png" alt="" width="24" height="24">GROK GAME</span>'
     + '<span class="chips">@' + esc(state.player.username) + ' &middot; <b>' + state.player.chips + '</b> chips</span>'
     + '<span class="spacer"></span>'
     + '<button class="snd' + (Sound.enabled ? ' on' : '') + '" data-act="sound">'

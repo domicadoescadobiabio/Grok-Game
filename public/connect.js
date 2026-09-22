@@ -48,8 +48,8 @@
     .then((r) => r.json())
     .then(({ games }) => {
       document.getElementById('games').innerHTML = games.map((g) =>
-        '<div class="game"><b>' + esc(g.title) + '</b>'
-        + '<span>' + esc(g.players) + ' players &middot; ' + g.turnSeconds + 's a turn</span></div>').join('');
+        '<span class="game"><b>' + esc(g.title) + '</b>'
+        + '<span>' + esc(g.players) + ' &middot; ' + g.turnSeconds + 's</span></span>').join('');
     })
     .catch(() => { /* the page still works without it */ });
 

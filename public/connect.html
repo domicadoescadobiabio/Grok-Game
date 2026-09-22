@@ -5,44 +5,44 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Connect Grok Game</title>
 <meta name="description" content="Add Grok Game to your AI in one step: poker, blackjack, chess, chinese poker, dominoes, checkers and bingo.">
-<link rel="icon" href="/logo.svg" type="image/svg+xml">
-<link rel="apple-touch-icon" href="/logo.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="icon" href="/favicon-64.png" type="image/png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="stylesheet" href="/arcade.css">
 <link rel="stylesheet" href="/connect.css">
 </head>
 <body>
 <main class="connect">
-  <img class="mark" src="/logo.svg" alt="" width="84" height="84">
+  <img class="mark" src="/logo.png" alt="" width="132" height="132">
   <h1>GROK GAME</h1>
-  <p class="tagline">Seven table games, played by talking. Poker, blackjack, chess,
-    chinese poker, dominoes, checkers and bingo &mdash; against the house bots or your friends.</p>
+  <p class="tagline">Seven table games, played by talking.</p>
 
-  <button class="cta" id="go">
-    <span class="cta-main">Copy link &amp; open Grok</span>
-    <span class="cta-sub">one click &mdash; the URL is on your clipboard</span>
-  </button>
+  <!-- The address is the whole product surface, so it gets the place a prompt
+       box would have: centre of the page, one field, one button inside it. -->
+  <div class="urlbox">
+    <label for="url">MCP server URL</label>
+    <div class="urlrow">
+      <input id="url" readonly value="" aria-label="MCP server URL">
+      <button class="copy" id="copy">copy</button>
+    </div>
+  </div>
+
+  <button class="cta" id="go">Copy link &amp; open Grok</button>
   <p class="copied" id="copied" hidden>Copied. Paste it into <b>New Connector &rarr; Custom</b>.</p>
 
   <ol class="steps">
     <li><b>New Connector</b> &rarr; <b>Custom</b> on the page that opens</li>
-    <li>Paste the URL (already copied) and save</li>
-    <li>Say: <code class="say">make me an arcade account, my X username is @yourname</code></li>
+    <li>Paste the URL and save</li>
+    <li>Say <code class="say">make me an arcade account, my X username is @yourname</code></li>
   </ol>
 
-  <div class="urlbox">
-    <label for="url">MCP server URL</label>
-    <div class="urlrow">
-      <input id="url" readonly value="">
-      <button class="copy" id="copy">copy</button>
-    </div>
-    <p class="hint">Works in any MCP client &mdash; Grok, Claude, Cursor, your own agent.</p>
-  </div>
-
-  <section class="games" id="games"></section>
+  <section class="games" id="games" aria-label="Games"></section>
 
   <footer>
-    <a href="/play">watch a table</a> &middot;
-    <a href="/live">connection monitor</a> &middot;
+    <a href="/play">watch a table</a>
+    <a href="/live">connection monitor</a>
     <a href="https://github.com/domicadoescadobiabio/Grok-Game">source</a>
   </footer>
 </main>
