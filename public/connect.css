@@ -173,3 +173,58 @@
 }
 .connect footer a { color: var(--dim); text-decoration: none; }
 .connect footer a:hover { color: var(--fg); }
+
+/* ---------- the contract address ---------- */
+/* Below the fold of the page's real job. The whole pill is the button: the
+   address is 44 characters, and asking someone to select that by hand on a
+   phone is how a wrong paste happens. */
+
+.ca {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  max-width: 100%;
+  margin: 52px auto 0;
+  padding: 9px 9px 9px 16px;
+  background: #0b0b0d;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--dim);
+  text-align: left;
+  transition: border-color .15s, color .15s;
+}
+.ca:hover { border-color: #34343c; color: var(--fg); }
+.ca:focus-visible { outline: 1px solid var(--fg); outline-offset: 3px; }
+
+.ca-label {
+  flex: none;
+  font-size: 10px;
+  letter-spacing: .18em;
+  font-weight: 600;
+  color: var(--dim);
+}
+.ca-addr {
+  flex: 1;
+  min-width: 0;
+  font: 12px/1.4 ui-monospace, Consolas, monospace;
+  color: var(--fg);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ca-act {
+  flex: none;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--dim);
+  background: #17171b;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 6px 14px;
+}
+.ca.done .ca-act { color: #000; background: var(--accent); border-color: var(--accent); }
+
+@media (max-width: 460px) {
+  .ca { gap: 9px; padding-left: 13px; }
+  .ca-addr { font-size: 11px; }
+}
