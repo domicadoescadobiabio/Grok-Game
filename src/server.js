@@ -12,8 +12,8 @@ import {
 } from './core/players.js';
 import { lobby, gameList, snapshot } from './core/engine.js';
 import { recent, stats } from './core/activity.js';
-import { livePage } from './web/live.js';
-import { staticScreen, screenPage } from './web/page.js';
+import path from 'node:path';
+import { staticScreen, screenPage, PUBLIC_DIR } from './web/page.js';
 
 const app = express();
 app.set('trust proxy', 1);
@@ -57,7 +57,7 @@ app.get('/api/player/:username', (req, res) => {
 app.get('/api/activity', (req, res) =>
   res.json({ stats: stats(), recent: recent(Math.min(200, Number(req.query.limit) || 50)) }));
 
-app.get('/live', (_req, res) => res.type('html').send(livePage()));
+app.get('/live', (_req, res) => res.sendFile(path.join(PUBLIC_DIR, 'monitor.html')));
 
 // ---------------------------------------------------------------- web screen
 //
@@ -104,7 +104,9 @@ app.get('/api/state', withPlayer((_req, res, player) => res.json(snapshot(player
 
 
 
-app.get('/', (_req, res) => {
+app.get('/', (_req, res) => res.sendFile(path.join(PUBLIC_DIR, 'connect.html')));
+
+app.get('/connect.txt', (_req, res) => {
   res.type('text/plain').send([
     `${config.siteName} -- poker, blackjack and chess.`,
     '',

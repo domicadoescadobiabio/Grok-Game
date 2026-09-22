@@ -15,14 +15,21 @@ That is enforced on the server, not just hidden in the UI -- there is no
 endpoint that deals, moves or bets, so the two surfaces cannot disagree about
 what happened.
 
-## How a player joins (chat)
+## How a player joins
 
-1. [grok.com/connectors](https://grok.com/connectors) → **New Connector** →
-   **Custom**, paste the `/mcp` URL.
-2. *"make me an arcade account, my X username is @yourname"* → a 6-digit
+Open the site and press **Copy link & open Grok**. That puts the MCP URL on the
+clipboard and opens the connectors page in one gesture; paste it into
+**New Connector → Custom**.
+
+xAI publishes no deep link that prefills a connector, so the paste is the one
+step that cannot be automated away. The button removes the rest.
+
+Then, in any chat:
+1. *"make me an arcade account, my X username is @yourname"* → a 6-digit
    **player ID**. Keep it; it is the password.
-3. *"open a poker table"* → a 4-letter code. Share it.
-4. Your friends, from their own chats: *"join arcade table ABCD"*.
+2. *"open a poker table"*, *"add a computer opponent"*, *"deal"*.
+3. Or share the 4-letter table code, and friends join from their own chats with
+   *"join arcade table ABCD"*.
 
 Everyone starts with 1000 chips. Bust out and `rebuy` gives 500 back, once every
 30 minutes.
@@ -124,7 +131,14 @@ npm test                       # rules and engine (46 tests)
 npm run test:mcp               # 35 end-to-end checks against /mcp
 ./scripts/verify.sh            # everything above, against a running server
 ./scripts/verify.sh https://…  # …or against a deployment
+python tools/verify_odds.py    # independent check of the card maths
 ```
+
+`verify_odds.py` re-implements hand ranking from scratch in Python, deals a
+large sample, and compares the category frequencies against the published
+seven-card probabilities — then asks the Node evaluator to rank the same hands
+and reports any disagreement. The JavaScript tests call the same evaluator the
+game calls, so a wrong evaluator would agree with itself; this one cannot.
 
 Or with Docker, to run it anywhere that is not Railway:
 
@@ -161,13 +175,17 @@ src/
     handrank.js          7-card poker evaluation
     poker.js  blackjack.js  chess.js  chessbot.js
     chinesepoker.js  domino.js  checkers.js  bingo.js
-    page.js              serves the screen from ./public
-    live.js              the request monitor behind /live
+    page.js              serves the pages from ./public
   store/jsonStore.js     atomic debounced JSON persistence
 public/
+  connect.html           the front door: one button to add the connector
+  connect.css  connect.js
   index.html             the screen's markup
-  arcade.css             its styles
-  arcade.js              its client script -- draws state, never acts
+  arcade.css  arcade.js  its styles and client script -- draws, never acts
+  monitor.html           the connection monitor behind /live
+  monitor.css  monitor.js
+tools/
+  verify_odds.py         independent check of the card maths
 ```
 
 A game plugs in by exporting `start`, `act`, `view`, `onTimeout` and some

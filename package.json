@@ -13,7 +13,8 @@
     "dev": "node --watch src/server.js",
     "test": "node --test scripts/handrank.test.js scripts/games.test.js scripts/newgames.test.js",
     "test:mcp": "node scripts/mcp-play.js",
-    "verify": "sh scripts/verify.sh"
+    "verify": "sh scripts/verify.sh",
+    "verify:odds": "python tools/verify_odds.py"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.30.0",
