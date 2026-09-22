@@ -9,6 +9,15 @@
   text-align: center;
 }
 
+/* The mark above the wordmark. It is the only image on the page, so it carries
+   the whole first impression -- give it room. */
+.mark {
+  display: block;
+  margin: 0 auto 18px;
+  width: 84px;
+  height: 84px;
+}
+
 .connect h1 {
   font-size: clamp(28px, 7vw, 42px);
   letter-spacing: .22em;

@@ -2,8 +2,11 @@
 
 An arcade you play by talking to an AI.
 
-**Live:** https://arcade-production-9205.up.railway.app
-**MCP URL for connectors:** `https://arcade-production-9205.up.railway.app/mcp`
+**Live:** https://game.grok.place
+**MCP URL for connectors:** `https://game.grok.place/mcp`
+
+`grok.place` and the original `*.up.railway.app` hostname both still reach the
+same service, so a connector added under an older URL keeps working.
 
 Seven table games, **played entirely through an AI connector**. Add the MCP URL
 to Grok (or any MCP client) and play by talking -- against the house bots or
@@ -209,6 +212,10 @@ a fourth game does not touch the plumbing.
   check (`anytimeActions`). Without that, an offer could never be accepted.
 - **Leaving mid-hand folds or resigns.** Standing up is not an escape hatch from
   a pot you are losing.
+- **`PUBLIC_URL` is the address the site tells people to paste.** It is the one
+  place the public hostname is written down; everything else derives from it.
+  Point it at a hostname that already resolves, or the front door hands out a
+  dead MCP URL.
 - **Deploy needs a volume at `data/`** — the save file is every account and every
   chip. Without one, a redeploy wipes the arcade.
 
