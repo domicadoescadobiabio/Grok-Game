@@ -68,12 +68,21 @@ test('chinese poker: a hand plays out and moves chips', () => {
   const me = newPlayer(5000);
   const table = createTable(me, 'chinesepoker', { stake: 20 });
   seatBots(me, 2);
-  const before = me.chips;
+  const seated = table.seats.map((s) => playerById(s.playerId));
+  const before = seated.reduce((sum, p) => sum + p.chips, 0);
   startRound(me);
   act(me, 'auto');
   assert.equal(table.status, 'finished');
   assert.ok(table.state.results, 'no results recorded');
-  assert.notEqual(me.chips, before, 'nobody can score exactly zero against two opponents every time');
+
+  // Not "my stack moved": netting exactly zero is an ordinary chinese poker
+  // result -- win a row, lose a row, split the third -- and asserting it
+  // cannot happen made this test fail roughly one run in eight. What must
+  // always hold is that scoring moves chips between players and invents none.
+  const after = seated.reduce((sum, p) => sum + p.chips, 0);
+  assert.equal(after, before, 'chips were created or destroyed at showdown');
+  const scored = Object.values(table.state.results.net).reduce((sum, n) => sum + n, 0);
+  assert.equal(scored, 0, 'the row scores do not cancel out');
   leaveTable(me);
 });
 
