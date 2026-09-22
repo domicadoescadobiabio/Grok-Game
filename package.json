@@ -11,7 +11,7 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "node --watch src/server.js",
-    "test": "node --test scripts/handrank.test.js scripts/games.test.js scripts/newgames.test.js",
+    "test": "node --test scripts/handrank.test.js scripts/games.test.js scripts/newgames.test.js scripts/world.test.js",
     "test:mcp": "node scripts/mcp-play.js",
     "verify": "sh scripts/verify.sh",
     "verify:odds": "python tools/verify_odds.py"

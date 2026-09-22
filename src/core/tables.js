@@ -20,16 +20,22 @@ export function newTableCode() {
   throw new GameError('Could not allocate a table code.', 'no_code');
 }
 
-export function createTable({ game, host, name, stake, maxSeats, turnSeconds, isPrivate = false }) {
-  const id = newTableCode();
+export function createTable({
+  game, host = null, name, stake, maxSeats, turnSeconds,
+  isPrivate = false, isHouse = false, id: fixedId = null,
+}) {
+  // The open world's rooms want the same code every day, so they bring their
+  // own; everything else gets one at random.
+  const id = fixedId || newTableCode();
   const table = {
     id,
     game,
-    name: name || `${host.username}'s table`,
-    hostId: host.id,
+    name: name || (host ? `${host.username}'s table` : 'open table'),
+    hostId: host ? host.id : null,
     stake,
     maxSeats,
     isPrivate,
+    isHouse,
     // Per game: a blackjack decision is not a chess move.
     turnLimit: turnSeconds || config.turnSeconds,
     seats: [],
@@ -109,7 +115,9 @@ export function stand(table, player) {
   table.lastActionAt = Date.now();
   tableLog(table, `@${player.username} leaves.`);
   if (table.turn === player.id) table.turn = null;
-  if (!table.seats.length) delete db.tables[table.id];
+  // A house room is furniture, not a session: it stays when the last
+  // player stands up. Everything else was only ever a gathering.
+  if (!table.seats.length && !table.isHouse) delete db.tables[table.id];
   save();
 }
 
@@ -175,7 +183,11 @@ export function nextSeat(table, fromId, predicate = () => true) {
 export function listTables({ game, includePrivate = false } = {}) {
   return Object.values(db.tables)
     .filter((t) => (!game || t.game === game) && (includePrivate || !t.isPrivate))
-    .sort((a, b) => b.lastActionAt - a.lastActionAt)
+    // The permanent rooms first, so the lobby reads as a place with a layout
+    // rather than a list of whatever happened most recently.
+    .sort((a, b) =>
+      (Number(Boolean(b.isHouse)) - Number(Boolean(a.isHouse)))
+      || b.lastActionAt - a.lastActionAt)
     .map((t) => ({
       id: t.id,
       game: t.game,
@@ -184,6 +196,8 @@ export function listTables({ game, includePrivate = false } = {}) {
       players: t.seats.length,
       maxSeats: t.maxSeats,
       status: t.status,
+      isHouse: Boolean(t.isHouse),
+      turnSeconds: t.turnLimit,
       seats: t.seats.map((s) => s.username),
     }));
 }
@@ -203,6 +217,18 @@ export function sweepIdleTables() {
       if (p.seatedAt === table.id) p.seatedAt = null;
       // Bot accounts belong to the table; they go with it.
       if (p.isBot) delete db.players[p.id];
+    }
+    // Empty a house room rather than deleting it, or the open world quietly
+    // closes an hour after the last hand and nobody notices until someone
+    // asks for a table that used to be there.
+    if (table.isHouse) {
+      table.seats = [];
+      table.status = 'waiting';
+      table.turn = null;
+      table.state = {};
+      table.log = [];
+      table.lastActionAt = Date.now();
+      continue;
     }
     delete db.tables[table.id];
   }

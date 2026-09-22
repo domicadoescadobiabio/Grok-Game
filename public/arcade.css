@@ -181,3 +181,21 @@
   /* the mark rides with the name in the header */
   .logo { display:inline-flex; align-items:center; gap:9px; }
   .logo img { display:block; }
+
+  /* ---------- the lobby: rooms, not a menu of games ---------- */
+  .rooms { display:grid; grid-template-columns:repeat(auto-fill,minmax(250px,1fr)); gap:12px; }
+  .room { background:var(--panel); border:1px solid var(--line); border-radius:16px;
+    padding:16px 18px; display:flex; flex-direction:column; gap:7px;
+    transition:border-color .15s; }
+  .room:hover { border-color:#34343c; }
+  /* Shut means full or mid-hand. Dimmed rather than hidden: knowing a room is
+     busy is worth more than a shorter list. */
+  .room.shut { opacity:.5; }
+  .room-top { display:flex; align-items:baseline; justify-content:space-between; gap:10px; }
+  .room-top b { font-size:15px; font-weight:600; }
+  .seatcount { font:12px/1 ui-monospace,Consolas,monospace; color:var(--dim);
+    border:1px solid var(--line); border-radius:999px; padding:5px 9px; flex:none; }
+  .room-who { font-size:13px; color:var(--fg); min-height:20px; }
+  .room.shut .room-who, .room .room-who:empty { color:var(--dim); }
+  .room-meta { font-size:12px; color:var(--dim); }
+  .room .say { align-self:flex-start; margin-top:4px; font-size:12px; }

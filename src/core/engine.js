@@ -10,6 +10,7 @@ import {
 } from './tables.js';
 import { getGame, gameList } from '../games/index.js';
 import { runBots, addBots, removeBots } from './bots.js';
+import { ensureOpenWorld, findOpenTable, resolveGameKey } from './world.js';
 
 export { gameList };
 
@@ -64,9 +65,26 @@ export function createTable(player, gameKey, { name, stake, isPrivate } = {}) {
   return table;
 }
 
-export function joinTable(player, code) {
+/**
+ * Sit down. `target` is either a four-letter code -- the way you join a
+ * friend -- or the name of a game, which puts you in whichever open room for
+ * it has the most people already in it.
+ */
+export function joinTable(player, target) {
   sweepIdleTables();
-  const table = requireTable(code);
+  ensureOpenWorld();
+
+  const gameKey = resolveGameKey(target);
+  let table;
+  if (gameKey) {
+    table = findOpenTable(gameKey);
+    if (!table) {
+      throw new GameError(`Every ${getGame(gameKey).title} table is busy. Try again in a moment.`, 'no_table');
+    }
+  } else {
+    table = requireTable(target);
+  }
+
   const game = getGame(table.game);
   catchUp(table);
   sit(table, player, table.stake);
@@ -94,7 +112,8 @@ export function leaveTable(player) {
   const stillThere = db.tables[id];
   if (stillThere && !stillThere.seats.some((s) => !playerById(s.playerId)?.isBot)) {
     removeBots(stillThere);
-    delete db.tables[id];
+    // A house room outlives its players; only a gathering gets broken up.
+    if (!stillThere.isHouse) delete db.tables[id];
   }
   save();
   return { tableId: id, forfeited: wasPlaying };
@@ -186,6 +205,7 @@ export function clearBots(player) {
 
 export function lobby({ game } = {}) {
   sweepIdleTables();
+  ensureOpenWorld();
   return listTables({ game });
 }
 
@@ -200,6 +220,9 @@ export const turnClock = () => config.turnSeconds;
 export function snapshot(player) {
   const table = tableOf(player);
   if (table) catchUp(table);
+  // Not seated? Then the screen shows the room list, from the same call the
+  // chat uses, so the two surfaces cannot disagree about what is open.
+  const rooms = table ? null : lobby();
   const game = table ? getGame(table.game) : null;
   return {
     player: {
@@ -225,5 +248,6 @@ export function snapshot(player) {
       log: recentLog(table, 10),
     } : null,
     game: table && game.snapshot ? game.snapshot(table, player) : null,
+    lobby: rooms,
   };
 }

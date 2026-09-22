@@ -18,6 +18,33 @@ That is enforced on the server, not just hidden in the UI -- there is no
 endpoint that deals, moves or bets, so the two surfaces cannot disagree about
 what happened.
 
+## The open world
+
+The arcade is not empty when you arrive. **Every game has a permanent room**
+that exists before anyone asks for it, listed in the lobby with whoever is
+sitting in it:
+
+```
+PKER  Texas Hold'em room    3/6 seats  stake  20  waiting   @newcomer, @cleo, @dmitri
+BJAK  Blackjack room        0/5 seats  stake  50  waiting
+CHES  Chess room            0/2 seats  stake 100  waiting
+...
+```
+
+So `join_table` takes either a four-letter code -- how you join a friend -- or
+just a game name, which seats you in whichever open room for it already has the
+most people. Two strangers who both say *"sit me at a poker table"* end up
+across from each other.
+
+`ensureOpenWorld()` keeps that promise on every lobby read: it seeds any room
+that is missing, and opens an overflow table for a game whose rooms are all
+full or mid-hand, so asking for a seat cannot fail. Overflow tables are
+ordinary ones -- they disappear when the last player stands up. The seven
+permanent rooms do not, which is the one thing `stand()` and `sweepIdleTables()`
+have to be told about: an empty house room is emptied, never deleted.
+
+Opening your own table still works, for a different stake or a private game.
+
 ## How a player joins
 
 Open the site and press **Copy link & open Grok**. That puts the MCP URL on the
@@ -30,7 +57,8 @@ step that cannot be automated away. The button removes the rest.
 Then, in any chat:
 1. *"make me an arcade account, my X username is @yourname"* → a 6-digit
    **player ID**. Keep it; it is the password.
-2. *"open a poker table"*, *"add a computer opponent"*, *"deal"*.
+2. *"sit me at a poker table"* -- there is always one open -- then
+   *"add a computer opponent"* and *"deal"*.
 3. Or share the 4-letter table code, and friends join from their own chats with
    *"join arcade table ABCD"*.
 
@@ -130,7 +158,7 @@ it?" and be told it was the bot's — forever.
 ```bash
 npm install
 npm start                      # http://localhost:4900
-npm test                       # rules and engine (46 tests)
+npm test                       # rules and engine (56 tests)
 npm run test:mcp               # 35 end-to-end checks against /mcp
 ./scripts/verify.sh            # everything above, against a running server
 ./scripts/verify.sh https://…  # …or against a deployment
@@ -170,6 +198,7 @@ src/
   core/
     players.js           accounts, chips, sessions
     tables.js            seats, turns, clocks -- knows nothing about any game
+    world.js             the permanent rooms, and keeping one seat always open
     engine.js            what a player can do; the layer the tools call
     activity.js          request monitor behind /live
   games/
@@ -216,6 +245,10 @@ a fourth game does not touch the plumbing.
   place the public hostname is written down; everything else derives from it.
   Point it at a hostname that already resolves, or the front door hands out a
   dead MCP URL.
+- **The seven permanent rooms are furniture, not sessions.** `stand()` deletes
+  an empty table; `sweepIdleTables()` deletes an idle one. Both have to skip
+  house rooms, or the open world quietly closes an hour after the last hand and
+  nobody notices until someone asks for a table that used to be there.
 - **Deploy needs a volume at `data/`** — the save file is every account and every
   chip. Without one, a redeploy wipes the arcade.
 

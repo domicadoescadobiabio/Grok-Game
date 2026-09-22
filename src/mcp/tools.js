@@ -107,19 +107,24 @@ export function registerTools(server) {
 
   server.registerTool('lobby', {
     title: 'Open tables',
-    description: 'List public tables waiting for players. Optionally filter by game.',
+    description: 'List the open tables. Every game has a permanent room that is always there, plus any extra tables people have opened. Optionally filter by game.',
     inputSchema: { game: z.enum(['poker', 'blackjack', 'chess', 'chinesepoker', 'domino', 'checkers', 'bingo']).optional() },
   }, guard('lobby', async ({ game }) => {
     const rows = lobby({ game });
     if (!rows.length) return text('No open tables. Create one with create_table.');
     return text(['Open tables:', '', ...rows.map(
-      (t) => `${t.id}  ${t.game.padEnd(9)} ${t.players}/${t.maxSeats} seats  stake ${t.stake}  ${t.status}  "${t.name}"  [${t.seats.join(', ')}]`,
-    ), '', 'Join one with join_table and its 4-letter code.'].join('\n'));
+      (t) => `${t.id}  ${t.name.padEnd(20)} ${String(t.players).padStart(2)}/${t.maxSeats} seats  `
+        + `stake ${String(t.stake).padStart(3)}  ${t.status.padEnd(8)}`
+        + (t.seats.length ? `  ${t.seats.map((u) => '@' + u).join(', ')}` : ''),
+    ), '',
+      'Sit down with join_table. Give it a 4-letter code to join a specific table --',
+      'that is how you join a friend -- or just a game name like "poker" to be put in',
+      'whichever room already has people in it.'].join('\n'));
   }));
 
   server.registerTool('create_table', {
-    title: 'Open a table',
-    description: 'Open a new table for a game and sit down. Share the 4-letter code so friends can join.',
+    title: 'Open your own table',
+    description: 'Open an EXTRA table and sit down, when the standing rooms are not what you want -- a different stake, or a private game. To play right now, prefer join_table with a game name: every game already has an open room. Share the 4-letter code so friends can join.',
     inputSchema: {
       game: z.enum(['poker', 'blackjack', 'chess', 'chinesepoker', 'domino', 'checkers', 'bingo']),
       stake: z.number().int().positive().optional().describe('Chips per hand (poker: the big blind).'),
@@ -139,9 +144,12 @@ export function registerTools(server) {
   }));
 
   server.registerTool('join_table', {
-    title: 'Join a table',
-    description: 'Sit down at a table by its 4-letter code.',
-    inputSchema: { code: z.string().describe('The 4-letter table code, e.g. "K7QD".'), ...authShape },
+    title: 'Sit at a table',
+    description: 'Sit down at a table. Give a 4-letter code to join a specific one -- that is how you join a friend -- or just a game name ("poker", "chess", "dominoes") to be seated at an open room for it. Every game always has one.',
+    inputSchema: {
+      code: z.string().describe('A 4-letter table code like "K7QD", or a game name like "poker".'),
+      ...authShape,
+    },
   }, guard('join_table', async (args) => {
     const p = auth(args);
     const { table } = joinTable(p, args.code);
@@ -278,11 +286,12 @@ LATER, ANYWHERE
   login with the X username + player ID -> a session token for this chat.
 
 FINDING A GAME
+  Every game has a room that is always open. You do not have to make one.
+  lobby            who is where, right now
+  join_table       sit down -- a 4-letter code, or just "poker" / "chess"
+  add_computer     fill the empty seats with house bots
+  create_table     only if you want your own stake, or a private game
   games            what is on
-  lobby            open tables
-  create_table     open your own, then share the 4-letter code
-  join_table       sit down at someone else's
-  add_computer     play right now against the house bots
 
 PLAYING
   deal             start the next hand

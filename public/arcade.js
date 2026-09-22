@@ -359,27 +359,39 @@
     };
   }
 
+  // The lobby. Not a menu of games any more -- a list of rooms that are
+  // already open, with who is in them, because the arcade is a place you walk
+  // into rather than something you have to start.
   function renderPicker() {
-    const games = [
-      { title: "Texas Hold'em", blurb: 'No-limit. Two cards each, five on the board.',
-        meta: '2-6 players &middot; 30s a turn', say: 'open a poker table', art: hand(['As', 'Kh'], true) },
-      { title: 'Blackjack', blurb: 'Beat the dealer without going over 21.',
-        meta: '1-5 vs dealer &middot; 15s a turn', say: 'open a blackjack table', art: hand(['Ad', 'Ts'], true) },
-      { title: 'Chess', blurb: 'One on one, against a person or the computer.',
-        meta: '2 players &middot; 60s a move', say: 'open a chess table',
-        art: '<span class="piece w" style="font-size:44px">\u265A</span><span class="piece b" style="font-size:44px">\u265B</span>' },
-    ];
+    const rooms = state.lobby || [];
+    const busy = rooms.filter(function (r) { return r.players > 0; }).length;
+
     return '<div class="chatbox" style="margin-bottom:18px"><b>This screen only watches</b>'
-      + '<div>The arcade is played in your AI chat. Open a table there and it shows up here.</div></div>'
-      + '<h2>Say one of these in your chat</h2><div class="picker">'
-      + games.map(function (g) {
-        return '<div class="gamecard">'
-          + '<div class="art">' + g.art + '</div>'
-          + '<h3>' + g.title + '</h3><p>' + g.blurb + '</p>'
-          + '<div class="meta">' + g.meta + '</div>'
-          + '<code class="say" style="margin-top:10px;display:inline-block">' + esc(g.say) + '</code>'
-          + '</div>';
-      }).join('')
+      + '<div>Every table below is open right now. Say the line to sit down;'
+      + ' the arcade is played in your AI chat.</div></div>'
+      + '<h2>' + rooms.length + ' tables open'
+      + (busy ? ' &middot; ' + busy + ' with players' : '') + '</h2>'
+      + '<div class="rooms">'
+      + rooms.map(roomCard).join('')
+      + '</div>';
+  }
+
+  function roomCard(r) {
+    const full = r.players >= r.maxSeats;
+    const mid = r.status === 'playing';
+    const shut = full || mid;
+    const who = r.seats.length
+      ? r.seats.map(function (u) { return '@' + esc(u); }).join(', ')
+      : 'empty';
+    return '<div class="room' + (shut ? ' shut' : '') + '">'
+      + '<div class="room-top">'
+        + '<b>' + esc(r.name) + '</b>'
+        + '<span class="seatcount">' + r.players + '/' + r.maxSeats + '</span>'
+      + '</div>'
+      + '<div class="room-who">' + who + '</div>'
+      + '<div class="room-meta">stake ' + r.stake + ' &middot; ' + r.turnSeconds + 's a turn'
+        + (mid ? ' &middot; mid-hand' : full ? ' &middot; full' : '') + '</div>'
+      + '<code class="say">' + (shut ? 'lobby' : 'join arcade table ' + r.id) + '</code>'
       + '</div>';
   }
 
