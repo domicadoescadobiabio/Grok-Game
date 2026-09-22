@@ -37,9 +37,14 @@
 
   const copy = () => copyText(MCP_URL, urlBox);
 
+  // The line under the button is the only place feedback can go, so it holds
+  // the instruction until there is something better to say.
+  const RESTING = copied.innerHTML;
+  let settle;
   function flash(message) {
     copied.textContent = message;
-    copied.hidden = false;
+    clearTimeout(settle);
+    settle = setTimeout(() => { copied.innerHTML = RESTING; }, 4000);
   }
 
   document.getElementById('go').onclick = async () => {

@@ -19,18 +19,22 @@
   <h1>GROK GAME</h1>
   <p class="tagline">Seven table games, played by talking.</p>
 
-  <!-- The address is the whole product surface, so it gets the place a prompt
-       box would have: centre of the page, one field, one button inside it. -->
+  <div class="cta-row">
+    <button class="cta" id="go">PLAY</button>
+    <a class="cta-ghost" href="/play">watch a table</a>
+  </div>
+  <p class="cta-sub" id="copied">Copies the address and opens Grok &mdash; paste it into
+    <b>New Connector &rarr; Custom</b>.</p>
+
+  <!-- The manual route, under the button that does it for you. -->
   <div class="urlbox">
-    <label for="url">MCP server URL</label>
+    <label for="url">or paste this yourself &mdash; MCP server URL</label>
     <div class="urlrow">
       <input id="url" readonly value="" aria-label="MCP server URL">
       <button class="copy" id="copy">copy</button>
     </div>
   </div>
 
-  <button class="cta" id="go">Copy link &amp; open Grok</button>
-  <p class="copied" id="copied" hidden>Copied. Paste it into <b>New Connector &rarr; Custom</b>.</p>
 
   <ol class="steps">
     <li><b>New Connector</b> &rarr; <b>Custom</b> on the page that opens</li>
@@ -51,7 +55,6 @@
   </button>
 
   <footer>
-    <a href="/play">watch a table</a>
     <a href="/live">connection monitor</a>
     <a href="https://github.com/domicadoescadobiabio/Grok-Game">source</a>
   </footer>
